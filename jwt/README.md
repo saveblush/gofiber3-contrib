@@ -21,26 +21,26 @@ Special thanks and credits to [Echo](https://echo.labstack.com/middleware/jwt)
 
 ## Install
 
-This middleware supports Fiber v1 & v2, install accordingly.
+This middleware supports Fiber v3, install accordingly.
 
 ```
-go get -u github.com/gofiber/fiber/v2
-go get -u github.com/gofiber/contrib/jwt
+go get -u github.com/gofiber/fiber/v3
 go get -u github.com/golang-jwt/jwt/v5
+go get -u github.com/saveblush/gofiber3-contrib/jwt
 ```
 
 ## Signature
 ```go
-jwtware.New(config ...jwtware.Config) func(*fiber.Ctx) error
+jwtware.New(config ...jwtware.Config) func(fiber.Ctx) error
 ```
 
 ## Config
 
 | Property       | Type                            | Description                                                                                                                                             | Default                      |
 |:---------------|:--------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------------------|
-| Filter         | `func(*fiber.Ctx) bool`         | Defines a function to skip middleware                                                                                                                   | `nil`                        |
-| SuccessHandler | `func(*fiber.Ctx) error`        | SuccessHandler defines a function which is executed for a valid token.                                                                                  | `nil`                        |
-| ErrorHandler   | `func(*fiber.Ctx, error) error` | ErrorHandler defines a function which is executed for an invalid token.                                                                                 | `401 Invalid or expired JWT` |
+| Filter         | `func(fiber.Ctx) bool`         | Defines a function to skip middleware                                                                                                                   | `nil`                        |
+| SuccessHandler | `func(fiber.Ctx) error`        | SuccessHandler defines a function which is executed for a valid token.                                                                                  | `nil`                        |
+| ErrorHandler   | `func(fiber.Ctx, error) error` | ErrorHandler defines a function which is executed for an invalid token.                                                                                 | `401 Invalid or expired JWT` |
 | SigningKey     | `interface{}`                   | Signing key to validate token. Used as fallback if SigningKeys has length 0.                                                                            | `nil`                        |
 | SigningKeys    | `map[string]interface{}`        | Map of signing keys to validate token with kid field usage.                                                                                             | `nil`                        |
 | ContextKey     | `string`                        | Context key to store user information from the token into context.                                                                                      | `"user"`                     |
@@ -58,10 +58,10 @@ package main
 import (
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-
-	jwtware "github.com/gofiber/contrib/jwt"
+	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
+
+	jwtware "github.com/saveblush/gofiber3-contrib/jwt"
 )
 
 func main() {
@@ -84,7 +84,7 @@ func main() {
 	app.Listen(":3000")
 }
 
-func login(c *fiber.Ctx) error {
+func login(c fiber.Ctx) error {
 	user := c.FormValue("user")
 	pass := c.FormValue("pass")
 
@@ -112,11 +112,11 @@ func login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"token": t})
 }
 
-func accessible(c *fiber.Ctx) error {
+func accessible(c fiber.Ctx) error {
 	return c.SendString("Accessible")
 }
 
-func restricted(c *fiber.Ctx) error {
+func restricted(c fiber.Ctx) error {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	name := claims["name"].(string)
@@ -157,11 +157,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-
+	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 
-	jwtware "github.com/gofiber/contrib/jwt"
+	jwtware "github.com/saveblush/gofiber3-contrib/jwt"
 )
 
 var (
@@ -202,7 +201,7 @@ func main() {
 	app.Listen(":3000")
 }
 
-func login(c *fiber.Ctx) error {
+func login(c fiber.Ctx) error {
 	user := c.FormValue("user")
 	pass := c.FormValue("pass")
 
@@ -231,11 +230,11 @@ func login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"token": t})
 }
 
-func accessible(c *fiber.Ctx) error {
+func accessible(c fiber.Ctx) error {
 	return c.SendString("Accessible")
 }
 
-func restricted(c *fiber.Ctx) error {
+func restricted(c fiber.Ctx) error {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	name := claims["name"].(string)
@@ -266,10 +265,11 @@ package main
 
 import (
 	"fmt"
-  "github.com/gofiber/fiber/v2"
 
-  jwtware "github.com/gofiber/contrib/jwt"
+  "github.com/gofiber/fiber/v3"
   "github.com/golang-jwt/jwt/v5"
+  
+  jwtware "github.com/saveblush/gofiber3-contrib/jwt"
 )
 
 func main() {
@@ -279,7 +279,7 @@ func main() {
 		KeyFunc: customKeyFunc(),
 	}))
 
-	app.Get("/ok", func(c *fiber.Ctx) error {
+	app.Get("/ok", func(c fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 }
