@@ -1,4 +1,4 @@
-module github.com/gofiber/contrib/websocket
+module github.com/saveblush/gofiber3-contrib/websocket
 
 go 1.21
 
