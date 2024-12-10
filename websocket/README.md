@@ -10,14 +10,14 @@ id: websocket
 ![Security](https://github.com/gofiber/contrib/workflows/Security/badge.svg)
 ![Linter](https://github.com/gofiber/contrib/workflows/Linter/badge.svg)
 
-Based on [Fasthttp WebSocket](https://github.com/fasthttp/websocket) for [Fiber](https://github.com/gofiber/fiber) with available `*fiber.Ctx` methods like [Locals](http://docs.gofiber.io/ctx#locals), [Params](http://docs.gofiber.io/ctx#params), [Query](http://docs.gofiber.io/ctx#query) and [Cookies](http://docs.gofiber.io/ctx#cookies).
+Based on [Fasthttp WebSocket](https://github.com/fasthttp/websocket) for [Fiber](https://github.com/gofiber/fiber) with available `fiber.Ctx` methods like [Locals](http://docs.gofiber.io/ctx#locals), [Params](http://docs.gofiber.io/ctx#params), [Query](http://docs.gofiber.io/ctx#query) and [Cookies](http://docs.gofiber.io/ctx#cookies).
 
 **Note: Requires Go 1.18 and above**
 
 ## Install
 
 ```
-go get -u github.com/gofiber/fiber/v2
+go get -u github.com/gofiber/fiber/v3
 go get -u github.com/gofiber/contrib/websocket
 ```
 
@@ -30,7 +30,7 @@ func New(handler func(*websocket.Conn), config ...websocket.Config) fiber.Handle
 
 | Property            | Type                        | Description                                                                                                                   | Default                |
 |:--------------------|:----------------------------|:------------------------------------------------------------------------------------------------------------------------------|:-----------------------|
-| Filter              | `func(*fiber.Ctx) bool`     | Defines a function to skip middleware.                                                                                        | `nil`                  |
+| Filter              | `func(fiber.Ctx) bool`     | Defines a function to skip middleware.                                                                                        | `nil`                  |
 | HandshakeTimeout    | `time.Duration`             | HandshakeTimeout specifies the duration for the handshake to complete.                                                       | `0` (No timeout)       |
 | Subprotocols        | `[]string`                  | Subprotocols specifies the client's requested subprotocols.                                                                   | `nil`                  |
 | Origins             | `[]string`                  | Allowed Origins based on the Origin header. If empty, everything is allowed.                                                  | `nil`                  |
@@ -49,14 +49,14 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/contrib/websocket"
 )
 
 func main() {
 	app := fiber.New()
 
-	app.Use("/ws", func(c *fiber.Ctx) error {
+	app.Use("/ws", func(c fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.
 		if websocket.IsWebSocketUpgrade(c) {
@@ -108,7 +108,7 @@ If you get the error `websocket: bad handshake` when using the [cache middleware
 ```go
 app := fiber.New()
 app.Use(cache.New(cache.Config{
-		Next: func(c *fiber.Ctx) bool {
+		Next: func(c fiber.Ctx) bool {
 			return strings.Contains(c.Route().Path, "/ws")
 		},
 }))
@@ -126,7 +126,7 @@ By default, config `RecoverHandler` is recovers from panic and writes stack trac
 app := fiber.New()
 
 app.Use(cache.New(cache.Config{
-    Next: func(c *fiber.Ctx) bool {
+    Next: func(c fiber.Ctx) bool {
         return strings.Contains(c.Route().Path, "/ws")
     },
 }))

@@ -12,10 +12,10 @@ import (
 	"runtime/debug"
 	"sync"
 	"time"
+	"unsafe"
 
 	"github.com/fasthttp/websocket"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
+	"github.com/gofiber/fiber/v3"
 	"github.com/valyala/fasthttp"
 )
 
@@ -23,7 +23,7 @@ import (
 type Config struct {
 	// Filter defines a function to skip middleware.
 	// Optional. Default: nil
-	Filter func(*fiber.Ctx) bool
+	Filter func(fiber.Ctx) bool
 
 	// HandshakeTimeout specifies the duration for the handshake to complete.
 	HandshakeTimeout time.Duration
@@ -73,6 +73,21 @@ func defaultRecover(c *Conn) {
 	}
 }
 
+// unsafeString returns a string pointer without allocation
+func unsafeString(b []byte) string {
+	return unsafe.String(unsafe.SliceData(b), len(b))
+}
+
+// unsafeBytes returns a byte pointer without allocation.
+func unsafeBytes(s string) []byte {
+	return unsafe.Slice(unsafe.StringData(s), len(s))
+}
+
+// copyString copies a string to make it immutable
+func copyString(s string) string {
+	return string(unsafeBytes(s))
+}
+
 // New returns a new `handler func(*Conn)` that upgrades a client to the
 // websocket protocol, you can pass an optional config.
 func New(handler func(*Conn), config ...Config) fiber.Handler {
@@ -104,7 +119,7 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 			if cfg.Origins[0] == "*" {
 				return true
 			}
-			origin := utils.UnsafeString(fctx.Request.Header.Peek("Origin"))
+			origin := unsafeString(fctx.Request.Header.Peek("Origin"))
 			for i := range cfg.Origins {
 				if cfg.Origins[i] == origin {
 					return true
@@ -113,7 +128,7 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 			return false
 		},
 	}
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		if cfg.Filter != nil && !cfg.Filter(c) {
 			return c.Next()
 		}
@@ -127,7 +142,7 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 		// params
 		params := c.Route().Params
 		for i := 0; i < len(params); i++ {
-			conn.params[utils.CopyString(params[i])] = utils.CopyString(c.Params(params[i]))
+			conn.params[copyString(params[i])] = copyString(c.Params(params[i]))
 		}
 
 		// queries
@@ -330,7 +345,7 @@ func IsUnexpectedCloseError(err error, expectedCodes ...int) bool {
 
 // IsWebSocketUpgrade returns true if the client requested upgrade to the
 // WebSocket protocol.
-func IsWebSocketUpgrade(c *fiber.Ctx) bool {
+func IsWebSocketUpgrade(c fiber.Ctx) bool {
 	return websocket.FastHTTPIsWebSocketUpgrade(c.Context())
 }
 
